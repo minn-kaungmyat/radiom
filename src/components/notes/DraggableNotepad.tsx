@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useNotesStore } from '../../stores/notesStore';
@@ -155,7 +155,7 @@ export const DraggableNotepad = () => {
           userSelect: 'none'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }} onClick={(e) => { if (isMinimized && !hasDragged.current) setMinimized(false); }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }} onClick={() => { if (isMinimized && !hasDragged.current) setMinimized(false); }}>
           <Edit2 size={16} /> 
           <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text)', fontFamily: 'var(--font-pixel)', whiteSpace: 'nowrap' }}>
             Scratchpad

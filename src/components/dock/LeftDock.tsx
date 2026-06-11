@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Home, Radio, Heart, Clock as Timer, BarChart2, Settings, Sparkles, Sliders, Edit2, MessageSquare } from '../icons';
+import { Radio, Heart, Clock as Timer, Settings, Sparkles, Sliders, Edit2, MessageSquare } from '../icons';
 import { useUIStore } from '../../stores/uiStore';
 import type { PanelType } from '../../stores/uiStore';
 import { IconButton } from '../ui/IconButton';
@@ -18,7 +18,6 @@ export const LeftDock = () => {
 
   const activePanel = useUIStore((state) => state.activePanel);
   const togglePanel = useUIStore((state) => state.togglePanel);
-  const setPanel = useUIStore((state) => state.setPanel);
   const isIdle = useUIStore((state) => state.isIdle);
 
   const activeId = activePanel;

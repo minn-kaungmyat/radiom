@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useUIStore } from '../../stores/uiStore';
 
 const PixelMaximize = ({ size = 20 }: { size?: number }) => (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePomodoroStore } from '../../stores/pomodoroStore';
 import { useUIStore } from '../../stores/uiStore';
 import { Play, Pause } from '../icons';
@@ -168,7 +168,7 @@ export const DraggableFocusPill = () => {
           lineHeight: 1,
           marginTop: '2px' // optical alignment for pixel font
         }}
-        onClick={(e) => {
+        onClick={() => {
           if (!hasDragged.current) setPanel('focus');
         }}
         title="Open Focus Panel"

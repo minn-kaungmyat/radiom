@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAmbientStore } from '../../stores/ambientStore';
 
 const TrackAudio = ({ track, userInteracted }: { track: { id: string, url: string, volume: number, isActive: boolean }, userInteracted: boolean }) => {

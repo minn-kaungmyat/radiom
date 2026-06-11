@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { usePomodoroStore } from '../../stores/pomodoroStore';
 import { Play } from '../icons';
 
