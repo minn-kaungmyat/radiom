@@ -53,7 +53,7 @@ export const SessionCompleteModal = () => {
             <>
               <button 
                 className="btn btn-secondary hover-pixel-pop"
-                style={{ flex: 1 }}
+                style={{ flex: 1, minHeight: '44px' }}
                 onClick={() => {
                   setMode('shortBreak');
                   start();
@@ -64,7 +64,7 @@ export const SessionCompleteModal = () => {
               </button>
               <button 
                 className="btn btn-secondary hover-pixel-pop"
-                style={{ flex: 1 }}
+                style={{ flex: 1, minHeight: '44px' }}
                 onClick={() => {
                   setMode('longBreak');
                   start();
@@ -77,7 +77,7 @@ export const SessionCompleteModal = () => {
           ) : (
             <button 
               className="btn btn-primary hover-pixel-pop"
-              style={{ flex: 1, padding: '14px' }}
+              style={{ flex: 1, padding: '14px', minHeight: '44px' }}
               onClick={() => {
                 setMode('focus');
                 start();
@@ -99,7 +99,9 @@ export const SessionCompleteModal = () => {
             cursor: 'pointer',
             marginTop: '0.5rem',
             textDecoration: 'underline',
-            fontSize: '0.9rem'
+            fontSize: '0.9rem',
+            minHeight: '44px',
+            padding: '8px'
           }}
         >
           Dismiss

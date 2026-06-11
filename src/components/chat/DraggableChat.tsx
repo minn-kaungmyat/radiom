@@ -3,6 +3,7 @@ import { useChatStore } from '../../stores/chatStore';
 import { useUIStore } from '../../stores/uiStore';
 import { X, MessageSquare } from '../icons';
 import { ChatStream } from './ChatStream';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export const DraggableChat = () => {
   const { 
@@ -12,6 +13,7 @@ export const DraggableChat = () => {
   
   const isIdle = useUIStore(state => state.isIdle);
   const setPanel = useUIStore(state => state.setPanel);
+  const { isMobile } = useIsMobile();
   
   const chatRef = useRef<HTMLDivElement>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -87,6 +89,60 @@ export const DraggableChat = () => {
 
   if (!isWindowOpen) return null;
 
+  // ===== MOBILE: Bottom Sheet =====
+  if (isMobile) {
+    return (
+      <>
+        <div className="mobile-sheet-backdrop" onClick={() => setWindowOpen(false)} />
+        <div
+          className="glass-panel mobile-sheet"
+          style={{
+            height: '80vh',
+            display: 'flex',
+            flexDirection: 'column',
+            background: 'rgba(12, 14, 18, 0.95)',
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              padding: '0.75rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+              userSelect: 'none',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text)' }}>
+              <MessageSquare size={16} />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text)', fontFamily: 'var(--font-pixel)' }}>
+                  Study Lounge
+                </span>
+                <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)' }}>
+                  {onlineCount} Online
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => setWindowOpen(false)}
+              style={{ background: 'transparent', border: 'none', color: '#ff6b6b', cursor: 'pointer', display: 'flex', padding: '8px' }}
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <ChatStream />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // ===== DESKTOP: Original Draggable Chat (unchanged) =====
   return (
     <div
       ref={chatRef}

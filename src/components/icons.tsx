@@ -35,6 +35,8 @@ import { Check as _Check } from 'pixelarticons/react/Check';
 import { MessageText as _MessageSquare } from 'pixelarticons/react/MessageText';
 import { Share as _Share } from 'pixelarticons/react/Share';
 import { ExternalLink as _ExternalLink } from 'pixelarticons/react/ExternalLink';
+import { MoreHorizontal as _MoreHorizontal } from 'pixelarticons/react/MoreHorizontal';
+import { ChevronDown as _ChevronUp } from 'pixelarticons/react/ChevronDown';
 export interface IconProps extends SVGProps<SVGSVGElement> {
   size?: number | string;
   color?: string;
@@ -87,6 +89,10 @@ export const Check = withLucideProps(_Check);
 export const MessageSquare = withLucideProps(_MessageSquare);
 export const Share = withLucideProps(_Share);
 export const ExternalLink = withLucideProps(_ExternalLink);
+export const MoreHorizontal = withLucideProps(_MoreHorizontal);
+export const ChevronUp = withLucideProps(function ChevronUpIcon({ style, ...props }: React.SVGProps<SVGSVGElement>) {
+  return <_ChevronUp style={{ transform: 'rotate(180deg)', ...style }} {...props} />;
+});
 export const Maximize = withLucideProps(function MaximizeIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>

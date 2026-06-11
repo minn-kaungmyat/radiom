@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Heart, HeartFilled, Play, Loader, Globe, Languages, Music, ChevronDown, ChevronRight } from '../icons';
+import React, { useEffect } from 'react';
+import { Search, Loader, Music } from '../icons';
 import { useStationStore } from '../../stores/stationStore';
-import { usePlayerStore } from '../../stores/playerStore';
-import { useFavoritesStore } from '../../stores/favoritesStore';
 import { CHANNELS } from '../../domain/constants/channels';
-import { getChannelIcon } from '../station/ChannelList';
-import { cleanAndPrioritizeTags, GENRE_KEYWORDS } from '../../utils/tagUtils';
-import { Card } from '../ui/Card';
-import { Badge } from '../ui/Badge';
-import { CustomSelect } from '../ui/CustomSelect';
+import { GENRE_KEYWORDS } from '../../utils/tagUtils';
+import { CuratedChannelList } from '../station/CuratedChannelList';
+import { StationSearchFilters } from '../station/StationSearchFilters';
+import { StationItem } from '../station/StationItem';
 
 export const StationsView = () => {
   const searchQuery = useStationStore((state) => state.searchQuery);
@@ -21,43 +18,12 @@ export const StationsView = () => {
   const isLoadingSearch = useStationStore((state) => state.isLoadingSearch);
   const searchError = useStationStore((state) => state.searchError);
 
-  const availableCountries = useStationStore((state) => state.availableCountries);
-  const availableLanguages = useStationStore((state) => state.availableLanguages);
-
-  const setFilter = useStationStore((state) => state.setFilter);
   const clearFilters = useStationStore((state) => state.clearFilters);
   const executeSearch = useStationStore((state) => state.executeSearch);
   const fetchFilters = useStationStore((state) => state.fetchFilters);
 
-  const setStation = usePlayerStore((state) => state.setStation);
-  const setChannel = usePlayerStore((state) => state.setChannel);
-  const currentStation = usePlayerStore((state) => state.currentStation);
-  const currentChannel = usePlayerStore((state) => state.currentChannel);
-  const isPlaying = usePlayerStore((state) => state.isPlaying);
-  const play = usePlayerStore((state) => state.play);
-  const pause = usePlayerStore((state) => state.pause);
-
-  const addFavorite = useFavoritesStore((state) => state.addFavorite);
-  const removeFavorite = useFavoritesStore((state) => state.removeFavorite);
-  const favorites = useFavoritesStore((state) => state.favorites);
-
   const browseTab = useStationStore((state) => state.browseTab);
   const setBrowseTab = useStationStore((state) => state.setBrowseTab);
-
-  // Collapsible accordion state for channels (only one expanded at a time)
-  const [expandedChannelId, setExpandedChannelId] = useState<string | null>(null);
-
-  // Auto-expand playing station/channel folder
-  useEffect(() => {
-    if (currentChannel) {
-      setExpandedChannelId(currentChannel.id);
-    } else if (currentStation) {
-      const ownerChannel = CHANNELS.find(c => c.stations.some(s => s.id === currentStation.id));
-      if (ownerChannel) {
-        setExpandedChannelId(ownerChannel.id);
-      }
-    }
-  }, [currentStation, currentChannel]);
 
   // Load filters and execute initial search
   useEffect(() => {
@@ -66,19 +32,6 @@ export const StationsView = () => {
       executeSearch();
     }
   }, [fetchFilters, executeSearch]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    executeSearch();
-  };
-
-  const handleGenreClick = (genre: string) => {
-    setFilter('genre', genre);
-    setTimeout(() => executeSearch(), 0);
-  };
-
-  // Curated study-oriented genres for focus
-  const displayGenres = ['All', 'Lo-Fi', 'Ambient', 'Jazz', 'Classical', 'Synthwave', 'Indie', 'Pop', 'Chill'];
 
   // Deduplicate search results (filter out any public stations that match a curated station's streamUrl)
   // and filter by selected genre to ensure high relevance
@@ -103,104 +56,6 @@ export const StationsView = () => {
     return true;
   });
 
-
-  const renderStationItem = (station: any, isCurated: boolean) => {
-    const isPlayingStation = currentStation?.id === station.id;
-    const isFav = favorites.some((f) => f.id === station.id);
-
-    const handlePlayClick = () => {
-      if (isCurated) {
-        const ownerChannel = CHANNELS.find(c => c.stations.some(s => s.id === station.id));
-        if (ownerChannel) {
-          setChannel(ownerChannel);
-        } else {
-          setChannel(null);
-        }
-      } else {
-        setChannel(null);
-      }
-      setStation(station);
-
-      if (isPlayingStation) {
-        if (isPlaying) pause(); else play();
-      }
-    };
-
-    return (
-      <Card
-        key={station.id}
-        isActive={isPlayingStation}
-        isCompact={isCurated}
-        onClick={handlePlayClick}
-        image={
-          station.faviconUrl ? (
-            <img
-              src={station.faviconUrl}
-              alt=""
-              style={{ width: isCurated ? '16px' : '20px', height: isCurated ? '16px' : '20px', borderRadius: '4px', objectFit: 'cover', imageRendering: 'pixelated' }}
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
-          ) : (
-            <Music size={isCurated ? 12 : 14} color="var(--color-text-muted)" />
-          )
-        }
-        title={station.name}
-        subtitle={
-          !isCurated ? (cleanAndPrioritizeTags(station.tags, 3, selectedGenre).join(' • ') || 'Live Stream') : undefined
-        }
-        actionButton={
-          <div className="flex-center" style={{ gap: '4px', marginLeft: '6px' }}>
-            <button
-              onClick={(e) => { e.stopPropagation(); isFav ? removeFavorite(station.id) : addFavorite(station); }}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: isFav ? '#ff4b4b' : 'var(--color-text-muted)',
-                cursor: 'pointer',
-                padding: '6px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'color 0.2s'
-              }}
-              onMouseEnter={(e) => { if (!isFav) e.currentTarget.style.color = 'var(--color-text)'; }}
-              onMouseLeave={(e) => { if (!isFav) e.currentTarget.style.color = 'var(--color-text-muted)'; }}
-            >
-              {isFav ? <HeartFilled size={isCurated ? 12 : 14} color="#ff4b4b" /> : <Heart size={isCurated ? 12 : 14} color="var(--color-text-muted)" />}
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); handlePlayClick(); }}
-              style={{
-                background: isPlayingStation ? 'var(--color-text)' : 'rgba(255,255,255,0.06)',
-                border: 'none',
-                borderRadius: '50%',
-                width: isCurated ? '24px' : '26px',
-                height: isCurated ? '24px' : '26px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: isPlayingStation ? 'var(--color-bg)' : 'var(--color-text)',
-                cursor: 'pointer',
-                transition: 'transform 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              {isPlayingStation && isPlaying ? (
-                <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
-                  <span style={{ width: '2px', height: isCurated ? '6px' : '8px', background: 'currentColor', borderRadius: '1px' }} />
-                  <span style={{ width: '2px', height: isCurated ? '6px' : '8px', background: 'currentColor', borderRadius: '1px' }} />
-                </div>
-              ) : (
-                <Play size={isCurated ? 8 : 10} fill="currentColor" style={{ marginLeft: isPlayingStation ? '0' : '1px' }} />
-              )}
-            </button>
-          </div>
-        }
-      />
-    );
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden', marginTop: "-0.7rem" }}>
       {/* Sub Tabs */}
@@ -211,6 +66,7 @@ export const StationsView = () => {
           style={{
             flex: 1,
             padding: '8px 0',
+            minHeight: '44px',
             background: 'transparent',
             border: 'none',
             borderBottom: browseTab === 'curated' ? '2px solid var(--color-text)' : '2px solid transparent',
@@ -233,6 +89,7 @@ export const StationsView = () => {
           style={{
             flex: 1,
             padding: '8px 0',
+            minHeight: '44px',
             background: 'transparent',
             border: 'none',
             borderBottom: browseTab === 'public' ? '2px solid var(--color-text)' : '2px solid transparent',
@@ -253,202 +110,12 @@ export const StationsView = () => {
 
       {browseTab === 'curated' ? (
         /* Curated accordion view */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, overflowY: 'auto', }}>
-          {CHANNELS.map(channel => {
-            const isExpanded = expandedChannelId === channel.id;
-            const isChannelPlaying = currentChannel?.id === channel.id;
-
-            return (
-              <div
-                key={channel.id}
-                style={{
-                  borderRadius: '16px',
-                  background: 'rgba(255, 255, 255, 0.02)',
-                  border: isChannelPlaying ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(255,255,255,0.03)',
-                  overflow: 'hidden',
-                  transition: 'border-color 0.2s',
-                  flexShrink: 0
-                }}
-              >
-                <button
-                  onClick={() => {
-                    setExpandedChannelId(prevId => prevId === channel.id ? null : channel.id);
-                  }}
-                  type="button"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    background: 'transparent',
-                    border: 'none',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    color: 'var(--color-text)',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      background: isChannelPlaying ? 'var(--color-text)' : 'rgba(255,255,255,0.05)',
-                      color: isChannelPlaying ? 'var(--color-bg)' : 'var(--color-text)',
-                      flexShrink: 0
-                    }}>
-                      {getChannelIcon(channel.icon, 16)}
-                    </div>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {channel.name}
-                        {isChannelPlaying && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-text)' }} />}
-                      </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {channel.description}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ color: 'var(--color-text-muted)', marginLeft: '8px', flexShrink: 0 }}>
-                    {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                  </div>
-                </button>
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateRows: isExpanded ? '1fr' : '0fr',
-                    transition: 'grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                    background: 'rgba(0,0,0,0.15)',
-                    borderTop: isExpanded ? '1px solid rgba(255, 255, 255, 0.04)' : '1px solid transparent',
-                    overflow: 'hidden'
-                  }}
-                >
-                  <div style={{ minHeight: 0 }}>
-                    <div style={{
-                      padding: '8px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px'
-                    }}>
-                      {channel.stations.map(station => renderStationItem(station, true))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <CuratedChannelList />
       ) : (
         /* Public Search View with Pinned Filters and Independent Scroll results list */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, minHeight: 0, overflow: 'hidden' }}>
           {/* Pinned Filter Section */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flexShrink: 0 }}>
-            {/* Search Input Form */}
-            <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '0.5rem' }}>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: 1 }}>
-                <Search size={16} color="var(--color-text-muted)" style={{ position: 'absolute', left: '12px' }} />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search stations..."
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px 10px 38px',
-                    borderRadius: '12px',
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.05)',
-                    color: 'var(--color-text)',
-                    fontSize: '0.85rem',
-                    outline: 'none',
-                    transition: 'border-color 0.2s'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.2)'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.05)'}
-                />
-              </div>
-              <button
-                type="submit"
-                style={{
-                  padding: '0 1rem',
-                  borderRadius: '12px',
-                  background: 'var(--color-text)',
-                  color: 'var(--color-bg)',
-                  border: 'none',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Search
-              </button>
-            </form>
-
-            {/* Advanced Select Dropdowns */}
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              {/* Country Selector */}
-              <div style={{ flex: 1 }}>
-                <CustomSelect
-                  options={[
-                    { value: 'All', label: 'All Countries' },
-                    ...availableCountries.map(c => ({ value: c.name, label: c.name }))
-                  ]}
-                  value={selectedCountry}
-                  onChange={(value) => {
-                    setFilter('country', value);
-                    setTimeout(() => executeSearch(), 0);
-                  }}
-                  icon={<Globe size={12} color="var(--color-text-muted)" />}
-                  searchable
-                />
-              </div>
-
-              {/* Language Selector */}
-              <div style={{ flex: 1 }}>
-                <CustomSelect
-                  options={[
-                    { value: 'All', label: 'All Languages' },
-                    ...availableLanguages.map(l => ({ value: l, label: l.charAt(0).toUpperCase() + l.slice(1) }))
-                  ]}
-                  value={selectedLanguage}
-                  onChange={(value) => {
-                    setFilter('language', value);
-                    setTimeout(() => executeSearch(), 0);
-                  }}
-                  icon={<Languages size={12} color="var(--color-text-muted)" />}
-                  searchable
-                />
-              </div>
-            </div>
-
-            {/* Genre Filter Tags */}
-            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-              {displayGenres.map((g) => {
-                const isSelected = selectedGenre === g;
-                return (
-                  <Badge
-                    key={g}
-                    isActive={isSelected}
-                    interactive={true}
-                    onClick={() => handleGenreClick(g)}
-                  >
-                    {g}
-                  </Badge>
-                );
-              })}
-            </div>
-          </div>
+          <StationSearchFilters />
 
           {/* Independent Scroll Results Area */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, overflowY: 'auto', }}>
@@ -463,7 +130,7 @@ export const StationsView = () => {
                     setSearchQuery('');
                     setTimeout(() => executeSearch(), 0);
                   }}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.72rem', cursor: 'pointer', textDecoration: 'underline' }}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.72rem', cursor: 'pointer', textDecoration: 'underline', minHeight: '44px', padding: '0 8px' }}
                 >
                   Clear filters
                 </button>
@@ -484,7 +151,9 @@ export const StationsView = () => {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {filteredPublicStations.map((station) => renderStationItem(station, false))}
+                {filteredPublicStations.map((station) => (
+                  <StationItem key={station.id} station={station} isCurated={false} selectedGenre={selectedGenre} />
+                ))}
               </div>
             )}
           </div>

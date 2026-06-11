@@ -3,10 +3,13 @@ import { useChatStore } from '../../stores/chatStore';
 import { useUIStore } from '../../stores/uiStore';
 import { ChatStream } from './ChatStream';
 
+import { useIsMobile } from '../../hooks/useIsMobile';
+
 export const ChatPanel = () => {
   const { setWindowOpen, onlineCount } = useChatStore();
   const setPanel = useUIStore(state => state.setPanel);
   const closePanel = useUIStore(state => state.closePanel);
+  const { isMobile } = useIsMobile();
 
   const handlePopOut = () => {
     setWindowOpen(true);
@@ -34,23 +37,26 @@ export const ChatPanel = () => {
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-          <button 
-            onClick={handlePopOut}
-            className="hover-pixel-pop"
-            title="Pop out to window"
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '8px',
-              color: 'var(--color-text-muted)',
-              cursor: 'pointer',
-              padding: '0.4rem',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <ExternalLink size={14} />
-          </button>
+          {!isMobile && (
+            <button 
+              onClick={handlePopOut}
+              className="hover-pixel-pop"
+              title="Pop out to window"
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '8px',
+                color: 'var(--color-text-muted)',
+                cursor: 'pointer',
+                padding: '0.4rem',
+                display: 'flex',
+                alignItems: 'center',
+                minHeight: '44px' // mobile touch target
+              }}
+            >
+              <ExternalLink size={14} />
+            </button>
+          )}
           <button 
             onClick={closePanel}
             className="hover-pixel-pop"

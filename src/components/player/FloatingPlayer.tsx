@@ -1,7 +1,7 @@
 import { usePlayerStore } from '../../stores/playerStore';
 import { useStationStore } from '../../stores/stationStore';
 import { useUIStore } from '../../stores/uiStore';
-import { Play, Pause, Volume2, VolumeX, Loader, AlertCircle, SkipForward, SkipBack } from '../icons';
+import { Play, Pause, Volume2, VolumeX, Loader, AlertCircle, SkipForward, SkipBack, ChevronDown } from '../icons';
 import { useChannelStations } from '../../services/radio/useChannelStations';
 import { useEffect, useState, useRef } from 'react';
 import { getChannelIcon } from '../station/ChannelList';
@@ -9,6 +9,9 @@ import { IconButton } from '../ui/IconButton';
 import { CHANNELS } from '../../domain/constants/channels';
 import { cleanAndPrioritizeTags } from '../../utils/tagUtils';
 import { AudioVisualizer } from './AudioVisualizer';
+import { PlayerControls } from './PlayerControls';
+import { VolumeControl } from './VolumeControl';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export const FloatingPlayer = () => {
   const currentChannel = usePlayerStore(state => state.currentChannel);
@@ -27,8 +30,11 @@ export const FloatingPlayer = () => {
   const isIdle = useUIStore((state) => state.isIdle);
   const activePanel = useUIStore((state) => state.activePanel);
   const playerPosition = useUIStore((state) => state.playerPosition);
+  const isMobilePlayerExpanded = useUIStore((state) => state.isMobilePlayerExpanded);
+  const setMobilePlayerExpanded = useUIStore((state) => state.setMobilePlayerExpanded);
   const isCollapsed = isIdle && activePanel === null;
 
+  const { isMobile } = useIsMobile();
   const [isChannelListOpen, setIsChannelListOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [hoveredChannelId, setHoveredChannelId] = useState<string | null>(null);
@@ -226,7 +232,7 @@ export const FloatingPlayer = () => {
       clearTimeout(timer2);
       window.removeEventListener('resize', checkOverflow);
     };
-  }, [currentStation, currentChannel, isChannelListOpen, isFetchingMore, error, isPlaying, isLoading, isCollapsed]);
+  }, [currentStation, currentChannel, isChannelListOpen, isFetchingMore, error, isPlaying, isLoading, isCollapsed, isMobilePlayerExpanded]);
 
   const selectedGenre = useStationStore(state => state.selectedGenre);
 
@@ -238,6 +244,239 @@ export const FloatingPlayer = () => {
     return null; // Don't show player until a channel or station is selected
   }
 
+  const stationTitle = currentStation ? currentStation.name : (currentChannel ? currentChannel.name : 'Select a station');
+  const canSkip = !!(stations && stations.length > 1);
+
+  // ===== MOBILE: Expanded Full-Screen Player =====
+  if (isMobile && isMobilePlayerExpanded) {
+    return (
+      <div
+        className="glass-panel mobile-player-expanded"
+        style={{ background: 'rgba(10, 12, 16, 0.92)', display: 'flex', flexDirection: 'column' }}
+      >
+        {/* Pull-down handle */}
+        <div
+          onClick={() => setMobilePlayerExpanded(false)}
+          style={{
+            padding: '1rem',
+            display: 'flex',
+            justifyContent: 'center',
+            cursor: 'pointer',
+          }}
+        >
+          <ChevronDown size={24} color="var(--color-text-muted)" />
+        </div>
+
+        {/* Content */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2rem', padding: '0 2rem 2rem' }}>
+          {/* Large Station Icon */}
+          <div style={{
+            width: '100px', height: '100px', borderRadius: '50%',
+            background: 'rgba(255,255,255,0.08)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: isPlaying ? '0 0 40px rgba(255,255,255,0.1)' : 'none',
+            transition: 'box-shadow 0.3s'
+          }}>
+            {currentStation?.faviconUrl && !logoError ? (
+              <img
+                src={currentStation.faviconUrl}
+                alt=""
+                style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', imageRendering: 'pixelated' }}
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              getChannelIcon(currentChannel?.icon || 'Music', 40)
+            )}
+          </div>
+
+          {/* Station Name & Subtitle */}
+          <div style={{ textAlign: 'center', width: '100%', overflow: 'hidden' }}>
+            <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden' }}>
+              <span
+                ref={titleRef}
+                className={shouldAnimateTitle ? 'marquee-text' : ''}
+                style={{
+                  display: shouldAnimateTitle ? 'inline-flex' : 'inline-block',
+                  whiteSpace: 'nowrap',
+                  willChange: 'transform'
+                }}
+              >
+                {shouldAnimateTitle ? (
+                  <>
+                    <span>{stationTitle}</span>
+                    <span style={{ display: 'inline-block', width: '3rem', flexShrink: 0 }} />
+                    <span>{stationTitle}</span>
+                    <span style={{ display: 'inline-block', width: '3rem', flexShrink: 0 }} />
+                  </>
+                ) : stationTitle}
+              </span>
+            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '0.5rem' }}>
+              {(!isLoading && !error && currentStation) && <AudioVisualizer />}
+              <span style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                {isFetchingMore ? 'Discovering more stations...' : error ? error : subtitleText}
+              </span>
+            </div>
+          </div>
+
+          {/* Full Playback Controls */}
+          <PlayerControls
+            isPlaying={isPlaying}
+            isLoading={isLoading}
+            isFetchingMore={isFetchingMore}
+            hasStation={!!currentStation}
+            canSkip={canSkip}
+            onPlay={play}
+            onPause={pause}
+            onNext={handleSkip}
+            onPrevious={handlePrevious}
+            size="full"
+          />
+
+          {/* Volume Slider (full width) */}
+          <div style={{ width: '100%', maxWidth: '280px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button
+              onClick={toggleMute}
+              style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', display: 'flex', cursor: 'pointer', padding: 0 }}
+            >
+              {volume > 0 ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            </button>
+            <input
+              type="range"
+              min="0" max="1" step="0.01"
+              value={volume}
+              onChange={(e) => setVolume(Number(e.target.value))}
+              className="pixel-slider"
+              style={{ flex: 1, '--value': `${volume * 100}%` } as React.CSSProperties}
+            />
+          </div>
+
+          {/* Channel Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '0.75rem',
+            width: '100%',
+            maxWidth: '320px',
+          }}>
+            {CHANNELS.map(channel => {
+              const isSelected = currentChannel?.id === channel.id;
+              return (
+                <button
+                  key={channel.id}
+                  onClick={() => {
+                    setChannel(channel);
+                  }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '0.75rem 0.5rem',
+                    borderRadius: '12px',
+                    background: isSelected ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.03)',
+                    border: isSelected ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.04)',
+                    color: isSelected ? 'var(--color-text)' : 'var(--color-text-muted)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {getChannelIcon(channel.icon, 20)}
+                  <span style={{ fontSize: '0.65rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+                    {channel.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ===== MOBILE: Mini Player Bar =====
+  if (isMobile) {
+    return (
+      <div
+        ref={playerRef}
+        className="glass-panel mobile-mini-player"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          transition: 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
+          transform: isCollapsed ? 'translateY(65px)' : 'translateY(0)',
+          opacity: 1,
+          pointerEvents: 'auto',
+        }}
+      >
+        {/* Tap area: station info → expand */}
+        <div
+          onClick={() => setMobilePlayerExpanded(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0, cursor: 'pointer' }}
+        >
+          {/* Small Station Icon */}
+          <div style={{
+            width: '36px', height: '36px', borderRadius: '50%',
+            background: 'rgba(255,255,255,0.1)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            {currentStation?.faviconUrl && !logoError ? (
+              <img
+                src={currentStation.faviconUrl}
+                alt=""
+                style={{ width: '20px', height: '20px', borderRadius: '4px', objectFit: 'cover', imageRendering: 'pixelated' }}
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              getChannelIcon(currentChannel?.icon || 'Music', 18)
+            )}
+          </div>
+
+          {/* Station Name (single line) */}
+          <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+            <div style={{
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              color: 'var(--color-text)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}>
+              {stationTitle}
+            </div>
+            {error && (
+              <div style={{ fontSize: '0.7rem', color: '#ff6b6b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <AlertCircle size={10} /> {error}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Compact Controls */}
+        <div style={{
+          display: 'flex',
+          flexShrink: 0,
+        }}>
+          <PlayerControls
+            isPlaying={isPlaying}
+            isLoading={isLoading}
+            isFetchingMore={isFetchingMore}
+            hasStation={!!currentStation}
+            canSkip={canSkip}
+            onPlay={play}
+            onPause={pause}
+            onNext={handleSkip}
+            onPrevious={handlePrevious}
+            size="compact"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ===== DESKTOP: Original Floating Player (unchanged) =====
   return (
     <div ref={playerRef} style={{
       position: 'absolute',
@@ -400,14 +639,12 @@ export const FloatingPlayer = () => {
               >
                 {shouldAnimateTitle ? (
                   <>
-                    <span>{currentStation ? currentStation.name : (currentChannel ? currentChannel.name : 'Select a station')}</span>
+                    <span>{stationTitle}</span>
                     <span style={{ display: 'inline-block', width: '3rem', flexShrink: 0 }} />
-                    <span>{currentStation ? currentStation.name : (currentChannel ? currentChannel.name : 'Select a station')}</span>
+                    <span>{stationTitle}</span>
                     <span style={{ display: 'inline-block', width: '3rem', flexShrink: 0 }} />
                   </>
-                ) : (
-                  currentStation ? currentStation.name : (currentChannel ? currentChannel.name : 'Select a station')
-                )}
+                ) : stationTitle}
               </span>
             </h3>
 
@@ -445,9 +682,7 @@ export const FloatingPlayer = () => {
                           <span>{subtitleText}</span>
                           <span style={{ display: 'inline-block', width: '3rem', flexShrink: 0 }} />
                         </>
-                      ) : (
-                        subtitleText
-                      )}
+                      ) : subtitleText}
                     </span>
                   </div>
                 </div>
@@ -467,109 +702,26 @@ export const FloatingPlayer = () => {
           justifyContent: 'flex-end',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', width: '280px', flexShrink: 0 }}>
-
             {/* Playback Controls */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <button
-                onClick={handlePrevious}
-                title="Previous Station"
-                style={{
-                  background: 'transparent',
-                  color: 'var(--color-text-muted)',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  padding: '8px',
-                  transition: 'color 0.2s'
-                }}
-                disabled={isFetchingMore || !stations || stations.length <= 1}
-                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text)'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
-              >
-                <SkipBack size={20} />
-              </button>
-
-              <button
-                onClick={isPlaying ? pause : play}
-                style={{
-                  background: 'var(--color-text)',
-                  color: 'var(--color-bg)',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '44px',
-                  height: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'transform 0.1s'
-                }}
-                disabled={isLoading || isFetchingMore || !currentStation}
-                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
-                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                {(isLoading || isFetchingMore) ? <Loader size={20} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} /> : isPlaying ? <Pause size={20} /> : <Play size={20} style={{ marginLeft: '2px' }} />}
-              </button>
-
-              <button
-                onClick={handleSkip}
-                title="Next Station"
-                style={{
-                  background: 'transparent',
-                  color: 'var(--color-text-muted)',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  padding: '8px',
-                  transition: 'color 0.2s'
-                }}
-                disabled={isFetchingMore || !stations || stations.length <= 1}
-                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text)'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
-              >
-                <SkipForward size={20} />
-              </button>
-            </div>
+            <PlayerControls
+              isPlaying={isPlaying}
+              isLoading={isLoading}
+              isFetchingMore={isFetchingMore}
+              hasStation={!!currentStation}
+              canSkip={canSkip}
+              onPlay={play}
+              onPause={pause}
+              onNext={handleSkip}
+              onPrevious={handlePrevious}
+              size="full"
+            />
 
             {/* Volume Control */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '6px 12px', borderRadius: '100px' }}>
-              <button
-                onClick={toggleMute}
-                title={volume > 0 ? "Mute" : "Unmute"}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  padding: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                  color: 'var(--color-text-muted)',
-                  transition: 'color 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text)'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
-              >
-                {volume > 0 ? <Volume2 size={16} /> : <VolumeX size={16} />}
-              </button>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setVolume(val);
-                }}
-                className="pixel-slider"
-                style={{ width: '60px', '--value': `${volume * 100}%` } as React.CSSProperties}
-              />
-            </div>
+            <VolumeControl
+              volume={volume}
+              onVolumeChange={setVolume}
+              onToggleMute={toggleMute}
+            />
           </div>
         </div>
         <style>{`

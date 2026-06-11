@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { X } from '../icons';
+import { X, ChevronDown } from '../icons';
 import { useUIStore } from '../../stores/uiStore';
 import { StationsView } from './StationsView';
 import { FavoritesView } from './FavoritesView';
@@ -10,10 +10,12 @@ import { AmbientMixerView } from './AmbientMixerView';
 import { ChatPanel } from '../chat/ChatPanel';
 import { GlassPanel } from '../ui/GlassPanel';
 import { IconButton } from '../ui/IconButton';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export const RightPanel = () => {
   const activePanel = useUIStore((state) => state.activePanel);
   const closePanel = useUIStore((state) => state.closePanel);
+  const { isMobile } = useIsMobile();
 
   const isOpen = activePanel !== null;
   const panelRef = useRef<HTMLDivElement>(null);
@@ -74,6 +76,53 @@ export const RightPanel = () => {
     }
   };
 
+  // ===== MOBILE: Fullscreen slide-up panel =====
+  if (isMobile) {
+    return (
+      <GlassPanel
+        ref={panelRef}
+        className={`flex-col mobile-fullscreen-panel ${!isOpen ? 'panel-closed' : ''}`}
+        style={{
+          position: 'fixed',
+          pointerEvents: isOpen ? 'auto' : 'none',
+          background: 'rgba(12, 14, 18, 0.95)',
+          zIndex: 15,
+          transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          overflow: 'hidden',
+          paddingBottom: 'calc(145px + var(--safe-area-bottom, 0px))',
+        }}
+      >
+        {/* Header */}
+        {activePanel !== 'chat' && (
+          <div
+            className="flex-between"
+            style={{
+              padding: '1rem 1.25rem',
+              paddingTop: 'calc(1rem + var(--safe-area-top, 0px))',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+            }}
+          >
+            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-text)' }}>
+              {getPanelTitle()}
+            </h2>
+            <IconButton
+              icon={<X size={18} />}
+              onClick={closePanel}
+              size={32}
+              popOnHover={false}
+            />
+          </div>
+        )}
+
+        {/* Content Area */}
+        <div className="flex-col" style={{ flex: 1, padding: activePanel === 'chat' ? 0 : '1rem 1.25rem', overflow: 'hidden', minHeight: 0 }}>
+          {renderContent()}
+        </div>
+      </GlassPanel>
+    );
+  }
+
+  // ===== DESKTOP: Original slide-from-right panel (unchanged) =====
   return (
     <GlassPanel
       ref={panelRef}

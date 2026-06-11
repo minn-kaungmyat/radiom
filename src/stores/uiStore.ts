@@ -9,6 +9,10 @@ interface UIState {
   activeModal: ModalType;
   isIdle: boolean;
   
+  // Mobile-specific state
+  isMobilePlayerExpanded: boolean;
+  isMobileMoreOpen: boolean;
+  
   // Actions
   setPanel: (panel: PanelType) => void;
   togglePanel: (panel: Exclude<PanelType, null>) => void;
@@ -21,6 +25,10 @@ interface UIState {
 
   playerPosition: 'top' | 'bottom';
   setPlayerPosition: (position: 'top' | 'bottom') => void;
+  
+  // Mobile actions
+  setMobilePlayerExpanded: (expanded: boolean) => void;
+  setMobileMoreOpen: (open: boolean) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -31,6 +39,8 @@ export const useUIStore = create<UIState>()(
       isIdle: false,
       interactionSoundsEnabled: true,
       playerPosition: 'bottom',
+      isMobilePlayerExpanded: false,
+      isMobileMoreOpen: false,
 
       setPanel: (panel) => set({ activePanel: panel, isIdle: false }),
       
@@ -50,6 +60,9 @@ export const useUIStore = create<UIState>()(
       toggleInteractionSounds: () => set((state) => ({ interactionSoundsEnabled: !state.interactionSoundsEnabled })),
       
       setPlayerPosition: (position) => set({ playerPosition: position }),
+      
+      setMobilePlayerExpanded: (expanded) => set({ isMobilePlayerExpanded: expanded }),
+      setMobileMoreOpen: (open) => set({ isMobileMoreOpen: open }),
     }),
     {
       name: 'radiom-ui-storage',

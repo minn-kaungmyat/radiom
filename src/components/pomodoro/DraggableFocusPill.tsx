@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { usePomodoroStore } from '../../stores/pomodoroStore';
 import { useUIStore } from '../../stores/uiStore';
 import { Play, Pause } from '../icons';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const formatTime = (seconds: number) => {
   const m = Math.floor(seconds / 60);
@@ -14,6 +15,7 @@ export const DraggableFocusPill = () => {
   const activePanel = useUIStore(state => state.activePanel);
   const setPanel = useUIStore(state => state.setPanel);
   const playerPosition = useUIStore(state => state.playerPosition);
+  const { isMobile } = useIsMobile();
 
   // Show if timer is running OR if it's paused but not at the starting duration
   const hasStarted = isRunning || timeLeft < duration;
@@ -132,6 +134,67 @@ export const DraggableFocusPill = () => {
   };
 
   if (!shouldShow) return null;
+
+  // ===== MOBILE: Fixed position at top center, no drag =====
+  if (isMobile) {
+    return (
+      <div
+        className="glass-panel"
+        onClick={() => setPanel('focus')}
+        style={{
+          position: 'fixed',
+          top: 'calc(0.75rem + var(--safe-area-top, 0px))',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 100,
+          borderRadius: '100px',
+          padding: '0.4rem 0.75rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          userSelect: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: 'var(--font-pixel)',
+            fontSize: '1.2rem',
+            fontWeight: 600,
+            color: isRunning ? 'var(--color-text)' : 'var(--color-text-muted)',
+            textShadow: isRunning ? '0 0 10px rgba(255,255,255,0.4)' : 'none',
+            lineHeight: 1,
+          }}
+        >
+          {formatTime(timeLeft)}
+        </div>
+
+        <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)' }} />
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            isRunning ? pause() : start();
+          }}
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            color: 'var(--color-text)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '6px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+          }}
+        >
+          {isRunning ? <Pause size={14} /> : <Play size={14} style={{ marginLeft: '1px' }} />}
+        </button>
+      </div>
+    );
+  }
+
+  // ===== DESKTOP: Original Draggable Focus Pill (unchanged) =====
 
   return (
     <div

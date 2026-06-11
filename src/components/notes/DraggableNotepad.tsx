@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { useNotesStore } from '../../stores/notesStore';
 import { useUIStore } from '../../stores/uiStore';
 import { X, Minus, Edit2, Check } from '../icons';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const PixelMaximize = ({ size = 14 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor" shapeRendering="crispEdges">
@@ -45,6 +46,7 @@ export const DraggableNotepad = () => {
   } = useNotesStore();
   
   const isIdle = useUIStore(state => state.isIdle);
+  const { isMobile } = useIsMobile();
   
   const notepadRef = useRef<HTMLDivElement>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -123,6 +125,110 @@ export const DraggableNotepad = () => {
 
   if (!isOpen) return null;
 
+  // ===== MOBILE: Bottom Sheet =====
+  if (isMobile) {
+    return (
+      <>
+        <div className="mobile-sheet-backdrop" onClick={() => setOpen(false)} />
+        <div
+          className="glass-panel mobile-sheet"
+          style={{
+            height: '75vh',
+            display: 'flex',
+            flexDirection: 'column',
+            background: 'rgba(12, 14, 18, 0.95)',
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              padding: '0.75rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+              userSelect: 'none',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Edit2 size={16} />
+              <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text)', fontFamily: 'var(--font-pixel)' }}>
+                Scratchpad
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                style={{ background: 'transparent', border: 'none', color: isEditing ? 'var(--color-accent)' : 'var(--color-text-muted)', cursor: 'pointer', display: 'flex', padding: '8px' }}
+                title={isEditing ? 'View' : 'Edit'}
+              >
+                {isEditing ? <Check size={18} /> : <Edit2 size={18} />}
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                style={{ background: 'transparent', border: 'none', color: '#ff6b6b', cursor: 'pointer', display: 'flex', padding: '8px' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            {isEditing ? (
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                style={{
+                  flex: 1,
+                  width: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--color-text)',
+                  padding: '1rem',
+                  fontSize: '0.9rem',
+                  resize: 'none',
+                  outline: 'none',
+                  lineHeight: 1.5,
+                }}
+                autoFocus
+                placeholder="Type your notes here... (Supports Markdown)"
+              />
+            ) : (
+              <div
+                onClick={() => setIsEditing(true)}
+                className="markdown-content"
+                style={{
+                  flex: 1,
+                  padding: '1rem',
+                  overflowY: 'auto',
+                  fontSize: '0.9rem',
+                  lineHeight: 1.5,
+                  color: 'var(--color-text)',
+                }}
+              >
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    input: ({node, ...props}) => {
+                      if (props.type === 'checkbox') {
+                        return <input type="checkbox" checked={props.checked} readOnly style={{ accentColor: 'var(--color-accent)' }} />;
+                      }
+                      return <input {...props} />;
+                    }
+                  }}
+                >
+                  {content || '*Empty scratchpad. Tap to edit.*'}
+                </ReactMarkdown>
+              </div>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // ===== DESKTOP: Original Draggable Notepad (unchanged) =====
   return (
     <div
       ref={notepadRef}

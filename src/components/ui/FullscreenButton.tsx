@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useUIStore } from '../../stores/uiStore';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const PixelMaximize = ({ size = 20 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor" shapeRendering="crispEdges">
@@ -76,6 +77,7 @@ const PixelMinimize = ({ size = 20 }: { size?: number }) => (
 export const FullscreenButton = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const isIdle = useUIStore(state => state.isIdle);
+  const { isMobile } = useIsMobile();
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -85,6 +87,9 @@ export const FullscreenButton = () => {
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
+
+  // Hide on mobile — Fullscreen API doesn't work on mobile browsers
+  if (isMobile) return null;
 
   const toggleFullscreen = async () => {
     try {

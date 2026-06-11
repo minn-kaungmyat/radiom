@@ -465,3 +465,332 @@ textarea,
 body.is-dragging * {
   cursor: grabbing !important;
 }
+
+/* ============================================ */
+/* RESPONSIVE: Mobile & Touch Device Overrides  */
+/* ============================================ */
+
+/* --- CSS Variables for responsive spacing --- */
+:root {
+  --mobile-dock-height: 56px;
+  --mobile-mini-player-height: 52px;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-top: env(safe-area-inset-top, 0px);
+}
+
+/* --- Touch Device: Disable custom cursors --- */
+@media (pointer: coarse) {
+  body {
+    cursor: auto !important;
+  }
+
+  a,
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"],
+  input[type="range"],
+  .hover-pixel-pop,
+  .interactive,
+  .cursor-pointer {
+    cursor: auto !important;
+  }
+
+  input:not([type="button"]):not([type="submit"]):not([type="range"]),
+  textarea,
+  [contenteditable="true"] {
+    cursor: auto !important;
+  }
+
+  .grab,
+  .grabbing,
+  .move,
+  .resize-ns,
+  .ns-resize,
+  .resize-ew,
+  .ew-resize {
+    cursor: auto !important;
+  }
+
+  :disabled,
+  .not-allowed {
+    cursor: auto !important;
+  }
+
+  /* Convert hover-pixel-pop to active press on touch */
+  .hover-pixel-pop:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .hover-pixel-pop:active {
+    transform: scale(0.96);
+    box-shadow: none;
+  }
+
+  /* Active pixel pop: keep transform but remove hover override */
+  .active-pixel-pop {
+    transform: translate(-3px, -3px) !important;
+    box-shadow: 3px 3px 0 0 var(--color-hover-shadow) !important;
+  }
+
+  .icon-button.active.hover-pixel-pop:hover {
+    transform: none;
+  }
+
+  .icon-button.active.hover-pixel-pop:active {
+    transform: scale(0.96);
+  }
+
+  /* Larger slider thumbs for touch */
+  .pixel-slider::-webkit-slider-thumb {
+    height: 20px;
+    width: 10px;
+    margin-top: -8px;
+  }
+
+  .pixel-slider::-webkit-slider-runnable-track {
+    height: 8px;
+  }
+}
+
+/* --- Mobile: ≤ 768px --- */
+@media (max-width: 768px) {
+  body {
+    min-width: auto;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Mobile Bottom Tab Bar */
+  .mobile-dock {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    transform: none !important;
+    z-index: 25 !important;
+    flex-direction: row !important;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.5rem 0.5rem calc(0.5rem + var(--safe-area-bottom)) !important;
+    border-radius: 0 !important;
+    gap: 0 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    width: 100%;
+  }
+
+  .mobile-dock-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .mobile-dock-item .icon-button {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .mobile-dock-label {
+    font-size: 0.6rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 56px;
+    text-align: center;
+  }
+
+  .mobile-dock-label.active {
+    color: var(--color-text);
+  }
+
+  /* Mobile Mini Player */
+  .mobile-mini-player {
+    position: fixed !important;
+    bottom: calc(75px + var(--safe-area-bottom, 0px)) !important;
+    left: 0.5rem !important;
+    right: 0.5rem !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    z-index: 20 !important;
+    height: 60px !important;
+    border-radius: 16px !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  /* Mobile Expanded Player */
+  .mobile-player-expanded {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    z-index: 30 !important;
+    border-radius: 0 !important;
+    overflow-y: auto;
+    padding: var(--safe-area-top) 0 var(--safe-area-bottom);
+  }
+
+  /* Mobile "More" Overflow Tray */
+  .mobile-more-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 35;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .mobile-more-tray {
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding: 1rem 1.5rem calc(1rem + var(--safe-area-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    animation: slideUpTray 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobile-more-handle {
+    width: 36px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    margin: 0 auto 1rem;
+  }
+
+  .mobile-more-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 0.75rem;
+    border-radius: 12px;
+    background: transparent;
+    border: none;
+    color: var(--color-text);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+    text-align: left;
+  }
+
+  .mobile-more-item:active {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .mobile-more-item .icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Mobile Right Panel → Fullscreen */
+  .mobile-fullscreen-panel {
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    transform: translateY(0) !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    left: 0 !important;
+  }
+
+  .mobile-fullscreen-panel.panel-closed {
+    transform: translateY(100%) !important;
+  }
+
+  /* Mobile Bottom Sheet */
+  .mobile-sheet {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    width: 100vw !important;
+    max-height: 85vh;
+    border-radius: 20px 20px 0 0 !important;
+    z-index: 40 !important;
+    animation: slideUpSheet 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobile-sheet-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 39;
+  }
+
+  /* Animations */
+  @keyframes slideUpTray {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUpSheet {
+    from {
+      transform: translateY(100%);
+      opacity: 0.8;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUpPanel {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* Ensure minimum touch targets */
+  .badge {
+    min-height: 36px;
+    padding: 8px 12px;
+  }
+
+  .card {
+    min-height: 44px;
+  }
+
+  /* Scrollbar: hide on mobile (use native scroll) */
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+}

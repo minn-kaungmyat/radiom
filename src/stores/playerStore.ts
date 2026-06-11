@@ -29,7 +29,7 @@ export const usePlayerStore = create<PlayerState>()(
       currentChannel: null,
       currentStation: null,
       isPlaying: false,
-      volume: 0.5,
+      volume: 1.0,
       isLoading: false,
       error: null,
       analyser: null,

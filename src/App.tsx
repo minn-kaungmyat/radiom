@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useIsMobile } from './hooks/useIsMobile';
 import { useAudioPlayer } from './services/playback/useAudioPlayer';
 import { FloatingPlayer } from './components/player/FloatingPlayer';
 import { LeftDock } from './components/dock/LeftDock';
@@ -25,6 +26,7 @@ function App() {
   // Initialize interaction sounds
   useInteractionSounds();
 
+  const { isMobile } = useIsMobile();
   const currentChannel = usePlayerStore(state => state.currentChannel);
   const currentStation = usePlayerStore(state => state.currentStation);
   const setChannel = usePlayerStore(state => state.setChannel);
@@ -157,10 +159,14 @@ function App() {
           }}
         />
       )}
-      {/* Left Dock Area */}
-      <div style={{ position: 'absolute', top: '50%', left: '2rem', transform: 'translateY(-50%)', zIndex: 10 }}>
+      {/* Left Dock Area — on mobile, LeftDock renders its own fixed-bottom bar */}
+      {isMobile ? (
         <LeftDock />
-      </div>
+      ) : (
+        <div style={{ position: 'absolute', top: '50%', left: '2rem', transform: 'translateY(-50%)', zIndex: 10 }}>
+          <LeftDock />
+        </div>
+      )}
 
       {/* Floating Player Layer */}
       <FloatingPlayer />
