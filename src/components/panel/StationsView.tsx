@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Search, Loader, Music } from '../icons';
 import { useStationStore } from '../../stores/stationStore';
 import { CHANNELS } from '../../domain/constants/channels';

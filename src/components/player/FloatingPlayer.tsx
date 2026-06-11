@@ -1,7 +1,7 @@
 import { usePlayerStore } from '../../stores/playerStore';
 import { useStationStore } from '../../stores/stationStore';
 import { useUIStore } from '../../stores/uiStore';
-import { Play, Pause, Volume2, VolumeX, Loader, AlertCircle, SkipForward, SkipBack, ChevronDown } from '../icons';
+import { Volume2, VolumeX, AlertCircle, ChevronDown } from '../icons';
 import { useChannelStations } from '../../services/radio/useChannelStations';
 import { useEffect, useState, useRef } from 'react';
 import { getChannelIcon } from '../station/ChannelList';

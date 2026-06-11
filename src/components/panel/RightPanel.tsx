@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { X, ChevronDown } from '../icons';
+import { X } from '../icons';
 import { useUIStore } from '../../stores/uiStore';
 import { StationsView } from './StationsView';
 import { FavoritesView } from './FavoritesView';

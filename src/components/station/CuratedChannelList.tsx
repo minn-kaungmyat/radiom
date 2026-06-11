@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CHANNELS } from '../../domain/constants/channels';
 import { usePlayerStore } from '../../stores/playerStore';
 import { getChannelIcon } from '../station/ChannelList';
