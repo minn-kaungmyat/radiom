@@ -139,7 +139,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                       width: '100%',
                       textAlign: 'left',
                       padding: '10px 12px',
-                      minHeight: '44px',
+                      minHeight: 'var(--touch-target)',
                       background: isSelected ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
                       border: 'none',
                       borderRadius: '6px',

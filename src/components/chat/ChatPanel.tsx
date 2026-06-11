@@ -51,7 +51,7 @@ export const ChatPanel = () => {
                 padding: '0.4rem',
                 display: 'flex',
                 alignItems: 'center',
-                minHeight: '44px' // mobile touch target
+                minHeight: 'var(--touch-target)' // mobile touch target
               }}
             >
               <ExternalLink size={14} />

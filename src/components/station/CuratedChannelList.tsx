@@ -50,7 +50,7 @@ export const CuratedChannelList = () => {
               style={{
                 width: '100%',
                 padding: '10px 12px',
-                minHeight: '44px',
+                minHeight: 'var(--touch-target)',
                 background: 'transparent',
                 border: 'none',
                 textAlign: 'left',

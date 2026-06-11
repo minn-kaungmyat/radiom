@@ -51,7 +51,7 @@ export const StationSearchFilters = () => {
               fontSize: '0.85rem',
               outline: 'none',
               transition: 'border-color 0.2s',
-              minHeight: '44px',
+              minHeight: 'var(--touch-target)',
             }}
             onFocus={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.2)'}
             onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.05)'}
@@ -68,7 +68,7 @@ export const StationSearchFilters = () => {
             fontSize: '0.85rem',
             fontWeight: 600,
             cursor: 'pointer',
-            minHeight: '44px',
+            minHeight: 'var(--touch-target)',
           }}
         >
           Search

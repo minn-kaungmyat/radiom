@@ -80,7 +80,7 @@ export const StationItem: React.FC<StationItemProps> = ({ station, isCurated, se
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'color 0.2s',
-              minHeight: '44px' // Good touch target for mobile
+              minHeight: 'var(--touch-target)' // Good touch target for mobile
             }}
             onMouseEnter={(e) => { if (!isFav) e.currentTarget.style.color = 'var(--color-text)'; }}
             onMouseLeave={(e) => { if (!isFav) e.currentTarget.style.color = 'var(--color-text-muted)'; }}

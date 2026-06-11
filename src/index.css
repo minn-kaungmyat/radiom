@@ -25,6 +25,8 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --touch-target: auto;
 }
 
 * {
@@ -556,6 +558,10 @@ body.is-dragging * {
 
 /* --- Mobile: ≤ 768px --- */
 @media (max-width: 768px) {
+  :root {
+    --touch-target: 44px;
+  }
+
   body {
     min-width: auto;
     overscroll-behavior: none;

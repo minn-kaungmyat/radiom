@@ -66,7 +66,7 @@ export const StationsView = () => {
           style={{
             flex: 1,
             padding: '8px 0',
-            minHeight: '44px',
+            minHeight: 'var(--touch-target)',
             background: 'transparent',
             border: 'none',
             borderBottom: browseTab === 'curated' ? '2px solid var(--color-text)' : '2px solid transparent',
@@ -89,7 +89,7 @@ export const StationsView = () => {
           style={{
             flex: 1,
             padding: '8px 0',
-            minHeight: '44px',
+            minHeight: 'var(--touch-target)',
             background: 'transparent',
             border: 'none',
             borderBottom: browseTab === 'public' ? '2px solid var(--color-text)' : '2px solid transparent',
@@ -130,7 +130,7 @@ export const StationsView = () => {
                     setSearchQuery('');
                     setTimeout(() => executeSearch(), 0);
                   }}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.72rem', cursor: 'pointer', textDecoration: 'underline', minHeight: '44px', padding: '0 8px' }}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', fontSize: '0.72rem', cursor: 'pointer', textDecoration: 'underline', minHeight: 'var(--touch-target)', padding: '0 8px' }}
                 >
                   Clear filters
                 </button>
