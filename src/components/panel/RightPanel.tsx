@@ -86,10 +86,10 @@ export const RightPanel = () => {
           position: 'fixed',
           pointerEvents: isOpen ? 'auto' : 'none',
           background: 'rgba(12, 14, 18, 0.95)',
-          zIndex: 15,
+          zIndex: 22, // Above FloatingPlayer (20) but below LeftDock (25)
           transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
           overflow: 'hidden',
-          paddingBottom: 'calc(145px + var(--safe-area-bottom, 0px))',
+          paddingBottom: 'calc(75px + var(--safe-area-bottom, 0px))', // Only need to clear the LeftDock now
         }}
       >
         {/* Header */}

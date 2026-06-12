@@ -1,70 +1,20 @@
-import express from 'express';
-import cors from 'cors';
-import Pusher from 'pusher';
-import dotenv from 'dotenv';
 import icecastParser from 'icecast-parser';
 
 const Parser = icecastParser.Parser || icecastParser;
 
-dotenv.config();
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID,
-  key: process.env.PUSHER_KEY,
-  secret: process.env.PUSHER_SECRET,
-  cluster: process.env.PUSHER_CLUSTER,
-  useTLS: true,
-});
-
-app.post('/api/message', async (req, res) => {
-  const { message, username, stationTitle, station } = req.body;
-  
-  try {
-    await pusher.trigger('presence-study-lounge', 'new-message', {
-      id: Date.now().toString(),
-      text: message,
-      sender: username,
-      stationTitle: stationTitle,
-      station: station,
-      timestamp: Date.now(),
-    });
-    res.status(200).json({ success: true });
-  } catch (error) {
-    console.error('Pusher error:', error);
-    res.status(500).json({ success: false, error: 'Failed to broadcast message' });
+export default async function handler(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).send('Method Not Allowed');
   }
-});
 
-app.post('/api/pusher/auth', (req, res) => {
-  const socketId = req.body.socket_id;
-  const channel = req.body.channel_name;
-  
-  // Create a random unique ID for the user's connection
-  const presenceData = {
-    user_id: 'user_' + Math.random().toString(36).substring(7),
-    user_info: { name: 'Anonymous' }
-  };
-  
-  try {
-    const authResponse = pusher.authorizeChannel(socketId, channel, presenceData);
-    res.send(authResponse);
-  } catch (err) {
-    console.error('Pusher auth error:', err);
-    res.status(403).send('Forbidden');
-  }
-});
-
-app.get('/api/metadata', async (req, res) => {
   const streamUrl = req.query.url;
   if (!streamUrl) {
     return res.status(400).send('URL is required');
   }
 
+  // Set aggressive Edge Caching
+  // s-maxage=30 tells Vercel's Edge Network to cache this for 30s
+  // stale-while-revalidate=15 allows serving stale content while fetching fresh
   res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=15');
 
   try {
@@ -75,8 +25,8 @@ app.get('/api/metadata', async (req, res) => {
       try {
         radio = new Parser({
           url: streamUrl,
-          keepListen: false,
-          autoUpdate: false,
+          keepListen: false, // Don't keep listening
+          autoUpdate: false, // Don't auto update
           errorInterval: 1,
           emptyInterval: 1,
           metadataInterval: 1,
@@ -86,6 +36,7 @@ app.get('/api/metadata', async (req, res) => {
         return resolve(null);
       }
 
+      // Fail-safe timeout to prevent hanging the serverless function
       const timeout = setTimeout(() => {
         if (!resolved) {
           resolved = true;
@@ -98,7 +49,7 @@ app.get('/api/metadata', async (req, res) => {
         if (!resolved) {
           resolved = true;
           clearTimeout(timeout);
-          try { radio.stop(); } catch(e){}
+          try { radio.stop(); } catch(e){} // Immediately destroy connection to save bandwidth
           const streamTitle = metadata instanceof Map ? metadata.get('StreamTitle') : metadata.StreamTitle;
           resolve(streamTitle || null);
         }
@@ -110,7 +61,7 @@ app.get('/api/metadata', async (req, res) => {
           clearTimeout(timeout);
           try { radio.stop(); } catch(e){}
           console.error(`Error fetching metadata for ${streamUrl}:`, error.message);
-          resolve(null);
+          resolve(null); // Don't throw, just return null so frontend doesn't crash
         }
       });
       
@@ -129,9 +80,4 @@ app.get('/api/metadata', async (req, res) => {
     console.error('Proxy fetch error:', error);
     res.status(500).json({ error: 'Failed to fetch metadata' });
   }
-});
-
-const PORT = 3001;
-app.listen(PORT, () => {
-  console.log(`Local Pusher API server running on port ${PORT}`);
-});
+}

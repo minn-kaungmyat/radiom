@@ -16,6 +16,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "framer-motion": "^12.40.0",
+    "icecast-parser": "^4.0.2",
     "idb-keyval": "^6.2.5",
     "pixelarticons": "^2.1.2",
     "pusher": "^5.3.4",

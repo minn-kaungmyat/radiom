@@ -26,6 +26,7 @@ export const FloatingPlayer = () => {
   const play = usePlayerStore(state => state.play);
   const pause = usePlayerStore(state => state.pause);
   const setVolume = usePlayerStore(state => state.setVolume);
+  const nowPlaying = usePlayerStore(state => state.nowPlaying);
 
   const isIdle = useUIStore((state) => state.isIdle);
   const activePanel = useUIStore((state) => state.activePanel);
@@ -232,13 +233,17 @@ export const FloatingPlayer = () => {
       clearTimeout(timer2);
       window.removeEventListener('resize', checkOverflow);
     };
-  }, [currentStation, currentChannel, isChannelListOpen, isFetchingMore, error, isPlaying, isLoading, isCollapsed, isMobilePlayerExpanded]);
+  }, [currentStation, currentChannel, isChannelListOpen, isFetchingMore, error, isPlaying, isLoading, isCollapsed, isMobilePlayerExpanded, nowPlaying]);
 
   const selectedGenre = useStationStore(state => state.selectedGenre);
 
-  const subtitleText = currentChannel
+  const baseSubtitleText = currentChannel
     ? currentChannel.name
     : (cleanAndPrioritizeTags(currentStation?.tags, 3, selectedGenre).join(' • ') || 'Live Radio');
+
+  const subtitleText = nowPlaying 
+    ? `${nowPlaying}  |  ${baseSubtitleText}` 
+    : baseSubtitleText;
 
   if (!currentChannel && !currentStation) {
     return null; // Don't show player until a channel or station is selected

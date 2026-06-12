@@ -13,6 +13,7 @@ export const useAudioPlayer = () => {
   const pause = usePlayerStore((state) => state.pause);
   const setLoading = usePlayerStore((state) => state.setLoading);
   const setError = usePlayerStore((state) => state.setError);
+  const setNowPlaying = usePlayerStore((state) => state.setNowPlaying);
 
   useEffect(() => {
     if (!audioRef.current) {
@@ -62,41 +63,44 @@ export const useAudioPlayer = () => {
       audioRef.current.volume = usePlayerStore.getState().volume;
     }
 
-    const audio = audioRef.current;
+  }, []); // Initialization runs once
 
-    if (currentStation) {
+  // Master playback controller for live streams
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying && currentStation) {
+      // If we are supposed to be playing, ensure the correct stream is loaded
       if (audio.src !== currentStation.streamUrl) {
         audio.src = currentStation.streamUrl;
         audio.load();
-        
-        if (isPlaying) {
-          audio.play().catch(err => {
-            if (err.name !== 'AbortError') {
-              console.error("Autoplay prevented:", err);
-              pause();
-              usePlayerStore.getState().setLoading(false);
-            }
-          });
-        }
+        setNowPlaying(null); // Clear now playing on station change
       }
-    }
-  }, [currentStation]); // Re-run mostly when station changes
-
-  useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying && audioRef.current.paused && currentStation) {
-        audioRef.current.play().catch(err => {
+      
+      if (audio.paused) {
+        audio.play().catch(err => {
           if (err.name !== 'AbortError') {
             console.error("Play error:", err);
             pause();
             usePlayerStore.getState().setLoading(false);
           }
         });
-      } else if (!isPlaying && !audioRef.current.paused) {
-        audioRef.current.pause();
+      }
+    } else {
+      // If we are supposed to be paused/stopped
+      if (!audio.paused) {
+        audio.pause();
+      }
+      
+      // Crucial for Live Radio: Unload the stream to prevent background buffering.
+      // This saves bandwidth and guarantees the "live edge" when resuming.
+      if (audio.hasAttribute('src')) {
+        audio.removeAttribute('src');
+        audio.load();
       }
     }
-  }, [isPlaying, currentStation, pause]);
+  }, [isPlaying, currentStation, pause, setNowPlaying]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -104,6 +108,42 @@ export const useAudioPlayer = () => {
       audioRef.current.volume = volume;
     }
   }, [volume]);
+
+  // Polling for Now Playing metadata
+  useEffect(() => {
+    if (!isPlaying || !currentStation) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchMetadata = async () => {
+      try {
+        const response = await fetch(`/api/metadata?url=${encodeURIComponent(currentStation.streamUrl)}`);
+        if (response.ok && isMounted) {
+          const data = await response.json();
+          if (data.title) {
+             setNowPlaying(data.title);
+          } else {
+             setNowPlaying(null);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch metadata proxy:", err);
+      }
+    };
+
+    // Fetch immediately on play
+    fetchMetadata();
+
+    // Then poll every 10 seconds
+    const intervalId = setInterval(fetchMetadata, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [isPlaying, currentStation]);
 
   return null;
 };

@@ -11,6 +11,7 @@ interface PlayerState {
   isLoading: boolean;
   error: string | null;
   analyser: AnalyserNode | null;
+  nowPlaying: string | null;
 
   // Actions
   setChannel: (channel: Channel | null) => void;
@@ -21,6 +22,7 @@ interface PlayerState {
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   setAnalyser: (analyser: AnalyserNode | null) => void;
+  setNowPlaying: (track: string | null) => void;
 }
 
 export const usePlayerStore = create<PlayerState>()(
@@ -33,21 +35,24 @@ export const usePlayerStore = create<PlayerState>()(
       isLoading: false,
       error: null,
       analyser: null,
+      nowPlaying: null,
 
       setChannel: (channel) => set({ 
         currentChannel: channel, 
         currentStation: channel && channel.stations.length > 0 ? channel.stations[0] : null, 
         error: null, 
         isLoading: true, 
-        isPlaying: true 
+        isPlaying: true,
+        nowPlaying: null
       }),
-      setStation: (station) => set({ currentStation: station, error: null, isLoading: true, isPlaying: true }),
+      setStation: (station) => set({ currentStation: station, error: null, isLoading: true, isPlaying: true, nowPlaying: null }),
       play: () => set({ isPlaying: true }),
       pause: () => set({ isPlaying: false }),
       setVolume: (volume) => set({ volume }),
       setLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error, isLoading: false, isPlaying: false }),
       setAnalyser: (analyser) => set({ analyser }),
+      setNowPlaying: (track) => set({ nowPlaying: track }),
     }),
     {
       name: 'radiom-player-storage',

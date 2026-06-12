@@ -589,6 +589,7 @@ body.is-dragging * {
     border-right: none;
     border-bottom: none;
     width: 100%;
+    background: rgba(12, 14, 18, 0.95) !important;
   }
 
   .mobile-dock-item {
@@ -632,6 +633,7 @@ body.is-dragging * {
     height: 60px !important;
     border-radius: 16px !important;
     padding: 0.5rem 0.75rem !important;
+    background: rgba(12, 14, 18, 0.95) !important;
   }
 
   /* Mobile Expanded Player */
@@ -648,6 +650,7 @@ body.is-dragging * {
     border-radius: 0 !important;
     overflow-y: auto;
     padding: var(--safe-area-top) 0 var(--safe-area-bottom);
+    background: rgba(12, 14, 18, 0.95) !important;
   }
 
   /* Mobile "More" Overflow Tray */
