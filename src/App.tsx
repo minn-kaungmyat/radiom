@@ -122,7 +122,7 @@ function App() {
   }, []);
 
   return (
-    <div style={{ width: '100vw', height: '100vh', display: 'flex', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ width: '100vw', height: '100dvh', display: 'flex', position: 'relative', overflow: 'hidden' }}>
       {/* Immersive Room Background Video or Image */}
       {currentBackground.type === 'image' ? (
         <img

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { uniqueNamesGenerator, adjectives, animals } from 'unique-names-generator';
@@ -57,7 +58,7 @@ export const useChatStore = create<ChatState>()(
           isSystem: true
         }
       ],
-      onlineCount: 1, // Start at 1 (yourself)
+      onlineCount: 1,
 
       isWindowOpen: false,
       windowPosition: { x: window.innerWidth - 380, y: 100 },

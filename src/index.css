@@ -42,6 +42,7 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   /* Full-screen immersive room */
   cursor: url('/default.svg') 0 0, auto;
@@ -114,6 +115,7 @@ textarea,
 #root {
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -721,6 +723,7 @@ body.is-dragging * {
   .mobile-fullscreen-panel {
     width: 100vw !important;
     height: 100vh !important;
+    height: 100dvh !important;
     border-radius: 0 !important;
     transform: translateY(0) !important;
     top: 0 !important;
